@@ -8,5 +8,5 @@ package searchengine;
  *
  */
 public enum TokenType {
-	GET, ADD, EXIT, FILENAME, WORD, PERIOD
+	GET, ADD, EXIT, SELECT, FILENAME, WORD, PERIOD
 }

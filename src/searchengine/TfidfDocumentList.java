@@ -8,7 +8,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * A DocumentList where the document-term pairs have tfidf scores
+ * A DocumentList where the document-term pairs have tf-idf scores.
+ * Create a tf-idf list from a {@link TfDocumentList} with tf scores.
  *
  */
 public class TfidfDocumentList implements DocumentList {
@@ -17,7 +18,7 @@ public class TfidfDocumentList implements DocumentList {
 	// maps documents to their term frequency <docId>: <tf-idf>
 	private List<Document> documentTermPairs = new ArrayList<Document>();
 	
-	public TfidfDocumentList(DocumentList docList, Double idf) {
+	public TfidfDocumentList(TfDocumentList docList, Double idf) {
 		this.term = docList.getTerm();
 		Document dt;
 		for (int i=0; i<docList.size(); ++i) {

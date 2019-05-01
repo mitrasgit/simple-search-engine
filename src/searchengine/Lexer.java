@@ -28,9 +28,6 @@ public class Lexer {
 	// Build the list of tokens in a field variable, for "complex" queries with 
 	// punctuation etc we want to find the tokens recursively!
 	List<Token> tokens;
-	/*ArrayList<Pattern> patterns = new ArrayList<Pattern>();*/
-	//					file.txt	, word
-	/*String[] regexes = {"\\w+\\.txt", "\\w+([\\-\\_]\\w+)*"};*/
 	HashMap<TokenType, String> regexMap = new HashMap<TokenType, String>();
 	
 	public Lexer() {
@@ -94,8 +91,11 @@ public class Lexer {
 		}
 		else if (subSequence.equals("exit")) {
 			token = new Token(TokenType.EXIT, subSequence);
+		} 
+		else if (subSequence.equals("select")) { 
+			token = new Token(TokenType.SELECT, subSequence);
 		} else {
-			throw new IllegalArgumentException("Please start a command with ADD, EXIT or GET.");
+			throw new IllegalArgumentException("Please start a command with ADD, GET, SELECT or EXIT.");
 		}
 		tokens.add(token);
 	}

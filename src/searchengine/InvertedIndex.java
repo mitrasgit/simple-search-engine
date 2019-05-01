@@ -51,18 +51,24 @@ public class InvertedIndex {
 		return docIds.size();
 	}
 	
+	public boolean hasDocId(String docId) {
+		return docIds.contains(docId);
+	}
+	
 	/**
 	 * Calculates the idf for the specified term
 	 * @param term the word/token for which to evaluate the idf
-	 * @return the idf score which equals -log(#documents containing term / #documents in index)
+	 * @return the idf score which equals log(#documents in index / #documents containing term)
 	 */
 	public Double calcIdf(String term) {
-		Double idf;
+		// idf = log(N/nTerm), 
+		// avoid division by zero by setting nTerm = 1!
+		int nTerm = 1;
 		if (index.containsKey(term)) {
-			idf = -Math.log((double) index.get(term).size() / numberOfDocuments());
-		} else {
-			idf = 0.0;
+			nTerm = index.get(term).size();
 		}
+		Double idf = Math.log10((double) numberOfDocuments() / nTerm);
+		System.out.println("invindex, term=" + term + " N=" + numberOfDocuments() + " n_t=" + nTerm + " --> idf=" + idf);
 		return idf;
 	}
 	
