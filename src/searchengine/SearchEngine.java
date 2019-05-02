@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -63,7 +64,7 @@ public class SearchEngine {
 				docId = selectQuery.get(i);
 				if (!invertedIndex.hasDocId(docId)) {
 					File file = new File(dbPath + File.separator + docId);
-					loadFileToIndex(file, docId);
+					loadFile(file, docId);
 				}
 			}
 		}
@@ -79,9 +80,9 @@ public class SearchEngine {
 		if (fileList != null) {
 			String docID;
 			for (File file : fileList) {
-				docID = extractDocName(file.getAbsolutePath());
+				docID = file.getName();
 				System.out.println(String.format("path: %s, id: %s", file.getAbsolutePath(), docID));
-				loadFileToIndex(file, docID);
+				loadFile(file, docID);
 			}
 		}
 		System.out.println("index = " + invertedIndex.toString());
@@ -93,9 +94,12 @@ public class SearchEngine {
 	 * @param docId the file's identifier
 	 * @throws FileNotFoundException if the file does not exist
 	 */
-	private void loadFileToIndex(File file, String docId) {
-		// Read the file to a list of tokens
-		List<Token> tokens = readFile(file);
+	private void loadFile(File file, String docId) {
+		List<Token> tokens = new ArrayList<Token>();
+		Token t = new Token(TokenType.FILENAME, file.getName());
+		tokens.add(t);
+		// Add the file
+		tokens.addAll(readFile(file));
 		// Create an ADD query
 		Query query = new Query(QueryType.ADD, tokens);
 		System.out.println("Add query = " + query.toString());
@@ -104,17 +108,6 @@ public class SearchEngine {
 			Document docTerm = new Document(docId, 1.0);
 			invertedIndex.insert(query.get(i), docTerm);
 		}
-	}
-	
-	/**
-	 * Extract the document name from the file path
-	 * @param absolutePath For example "c:/path/to/file.txt"
-	 * @return The file name "file.txt"
-	 */
-	private static String extractDocName(String path) {
-		String[] s = path.split(String.format("\\%s", File.separator));
-		System.out.println(s[s.length-1]);
-		return s[s.length-1];
 	}
 	
 	/**
@@ -138,7 +131,7 @@ public class SearchEngine {
 		}
 		// Load to index
 		File file = new File(docPath);
-		loadFileToIndex(file, docID);
+		loadFile(file, docID);
 	}
 	
 	/**
@@ -167,6 +160,9 @@ public class SearchEngine {
 		return documents;
 	}
 	
+	/**
+	 * Convert a {@link TfDocumentList} tp {@link TfidfDocumentList} and sort in descending order
+	 */
 	private TfidfDocumentList sortResults(String term, TfDocumentList results) {
 		Double idf = invertedIndex.calcIdf(term);
 		System.out.println(String.format("n=%d, nTerm=%d, idf=%f", 

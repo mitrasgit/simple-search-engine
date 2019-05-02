@@ -10,13 +10,13 @@ import java.util.Scanner;
 
 /**
  * Interface with the user
- * DONE handle weirdly formatted files
  * DONE sort results by tf-idf
  * DONE use Document class
  * DONE Use a lexer/tokenizer to create Token/Term objects
  * DONE Add a SELECT option to define the set of documents to consider, expand the lexer, 
- * add QueryType.SELECT/create SelectQuery obj, reload the index
- * TODO Review the code structure (design, classes etc)
+ * add QueryType.SELECT, reload the index
+ * TODO Handle all of the exceptions
+ * TODO Review the code structure (Query class (DONE), call new Query (structure), DataBase (create))
  * TODO Make the code consequent: variable names, store tokens in the index etc
  * TODO separate the classes into two packages? e.g. searchengine and (user input, tokenizer, tokens etc)
  * TODO Run tests with pre-calculated tf-idf scores
@@ -101,6 +101,7 @@ public class Main {
 			if (TokenType.ADD.equals(action)) {
 				System.out.println("- Add a doc");
 				if (input.length() > 0) {
+					// TODO create an add query
 					addDocument(searchEngine, input);
 				}
 			}

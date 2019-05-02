@@ -10,5 +10,5 @@ package searchengine;
  *
  */
 public enum QueryType {
-GET, ADD, SELECT
+GET, ADD, SELECT, EXIT
 }

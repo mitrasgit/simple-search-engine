@@ -17,10 +17,10 @@ import java.util.List;
  * 	ADD filename.txt a sequence of text for the file content
  * 2. One-word query
  * 	GET query
- * 3. Terminate the search engine
- * 	EXIT
- * 4. TODO select a subset of the documents
+ * 3. Select a subset of the documents
  * 	SELECT * or SELECT doc1.txt doc2.txt
+ * 4. Terminate the search engine
+ * 	EXIT
  *
  */
 public class Lexer {
@@ -64,7 +64,7 @@ public class Lexer {
 		String[] sequenceList = sequence.split(" ");
 		if (sequenceList.length > 0) {
 			// Check the first token
-			addFirstToken(sequenceList[0]);
+			addActionToken(sequenceList[0]);
 			// Loop over each sub-sequence
 			for (int i=1; i<sequenceList.length; ++i) {
 				addToken(sequenceList[i]);
@@ -80,7 +80,7 @@ public class Lexer {
 	 * @return the token than matches the subSequence
 	 * @throws IllegalArgumentException
 	 */
-	private void addFirstToken(String subSequence) throws IllegalArgumentException {
+	private void addActionToken(String subSequence) throws IllegalArgumentException {
 		Token token = null;
 		System.out.println("subseq = " + subSequence);
 		if (subSequence.equals("add")) {

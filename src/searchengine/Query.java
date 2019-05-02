@@ -4,7 +4,6 @@
 package searchengine;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -12,39 +11,89 @@ import java.util.List;
  */
 public class Query {
 	
-	private List<String> query = new ArrayList<String>();
+	private List<String> query;
 	private QueryType queryType;
 	
-	
 	public Query(QueryType queryType, List<Token> tokens) {
-		this.queryType = queryType;
-		parseTokens(tokens);
+		this.queryType = queryType;	
+		switch (queryType) {
+		case SELECT:
+			this.query = buildSelectQuery(tokens);
+			break;
+		case ADD:
+			this.query = buildAddQuery(tokens);
+			break;
+		case GET:
+			this.query = buildGetQuery(tokens);
+			break;
+		case EXIT:
+			this.query = new ArrayList<String>();
+			break;
+		default:
+			throw new IllegalArgumentException("QueryType <" + queryType + "> is not supported.");
+		}
 	}
-	
-	/**
-	 * Create a Query
-	 * @param queryType The type of query
-	 * @param query An array with the contents of the query (TODO turn this into a token array!)
-	 */
-	public Query(QueryType queryType, String[] query) {
-		List<String> tokens = new ArrayList<String>(Arrays.asList(query));
-		this.query = tokens;
-		this.queryType = queryType;
-	}
-	
-	/**
-	 * Parse a list of tokens and store it as the query list
-	 * (declutters the list of tokens from weird symbols etc)
-	 * @param tokens the list of tokens
-	 */
-	private void parseTokens(List<Token> tokens) {
-		for (int i=0; i<tokens.size(); ++i) {
-			Token token = tokens.get(i);
-			TokenType type = token.getType();
-			if (type.equals(TokenType.WORD) || type.equals(TokenType.FILENAME)) {
-				query.add(tokens.get(i).getValue());
+
+	private List<String> buildSelectQuery(List<Token> tokens) {
+		List<String> query = new ArrayList<String>();
+		TokenType type;
+		for (Token t : tokens) {
+			type = t.getType();
+			if (TokenType.FILENAME.equals(type)) {
+				query.add(t.getValue());
+			} else {
+				throw new IllegalArgumentException("Select queries can't contain token " + t.toString());
 			}
 		}
+		return query;
+	}
+	
+	private List<String> buildAddQuery(List<Token> tokens) {
+		List<String> query = new ArrayList<String>();
+		Token t;
+		if (tokens.size() < 2) {
+			throw new IllegalArgumentException("Can't create ADD query from tokens " + tokens.toString());
+		} else {
+			// first token is a filename
+			t = tokens.get(0);
+			if (TokenType.FILENAME.equals(t.getType())) {
+				query.add(t.getValue());
+			} else {
+				throw new IllegalArgumentException("ADD query can't start with token " + t.toString());
+			}
+			// words
+			for (int i=1; i<tokens.size(); ++i) {
+				t = tokens.get(i);
+				switch (t.getType()) {
+				case WORD:
+					query.add(t.getValue());
+					break;
+				case PERIOD:
+					break;
+				default:
+					throw new IllegalArgumentException("ADD query can't add text with token " + t.toString());
+				}
+			}
+		}
+		return query;
+	}
+	
+	private List<String> buildGetQuery(List<Token> tokens) {
+		List<String> query = new ArrayList<String>();
+		TokenType type;
+		for (Token t : tokens) {
+			type = t.getType();
+			switch (type) {
+			case WORD:
+				query.add(t.getValue());
+				break;
+			case PERIOD:
+				break;
+			default:
+				throw new IllegalArgumentException("GET query can't contain token " + t.toString());
+			}
+		}
+		return query;
 	}
 	
 	public QueryType getType() {
