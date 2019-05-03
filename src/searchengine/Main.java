@@ -4,6 +4,7 @@
 package searchengine;
 
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -15,18 +16,19 @@ import java.util.Scanner;
  * DONE Use a lexer/tokenizer to create Token/Term objects
  * DONE Add a SELECT option to define the set of documents to consider, expand the lexer, 
  * add QueryType.SELECT, reload the index
- * TODO Handle all of the exceptions
+ * DONE Handle all of the exceptions
+ * TODO Limit the amount of exceptions, use more default behaviours etc
+ * TODO Create a parser: lexer controls the tokens, parser controls the token flow by creating a tree, 
  * TODO Review the code structure (Query class (DONE), call new Query (structure), DataBase (create))
- * TODO Make the code consequent: variable names, store tokens in the index etc
- * TODO separate the classes into two packages? e.g. searchengine and (user input, tokenizer, tokens etc)
  * TODO Run tests with pre-calculated tf-idf scores
  *
  */
 public class Main {
 
-	private static final String MSG_COMMANDS = "Type EXIT to terminate,\n"
+	private static final String MSG_COMMANDS = "\nType EXIT to terminate,\n"
 			+ "ADD <filename.txt> <file content> to add a document,\n"
-			+ "GET <query> to search for a word.";
+			+ "GET <query> to search for a word,\n"
+			+ "SELECT <filename.txt> <filename.txt> ... to select a subset of the files.";
 	private static final String MSG_WELCOME = "Welcome to Simple Search Engine!\n" + MSG_COMMANDS;
 	
 	private static void addDocument(SearchEngine engine, String input) {
@@ -38,7 +40,8 @@ public class Main {
 			String fileName = inputList[1];
 			try {
 				engine.addDocument(fileName, inputList[2]);
-			} catch (IllegalArgumentException e) {
+				System.out.println(String.format("Added %s.", fileName));
+			} catch (FileAlreadyExistsException e) {
 				String message = e.getMessage();
 				System.out.println(String.format("%s Please use another file name.", message));
 			}
@@ -61,11 +64,11 @@ public class Main {
 	 * @param input
 	 * @return
 	 */
-	private static List<Token> tokenizeInput(Lexer lexer, String input) {
+	private static List<Token> readInput(Lexer lexer, String input) {
 		List<Token> tokens = new ArrayList<Token>();
 		try {
 		 tokens = lexer.tokenizeQuery(input);
-		} catch (IllegalArgumentException e) {
+		} catch (SyntaxException e) {
 			System.out.println(e.getMessage());
 			System.out.println(MSG_COMMANDS);
 		}
@@ -88,7 +91,7 @@ public class Main {
 			String input = scanner.nextLine();
 			
 			// Tokenize the input
-			List<Token> tokens = tokenizeInput(lexer, input);
+			List<Token> tokens = readInput(lexer, input);
 			System.out.println("query tokens = " + tokens.toString());
 			
 			// Choose action
@@ -99,28 +102,37 @@ public class Main {
 			}
 			
 			if (TokenType.ADD.equals(action)) {
-				System.out.println("- Add a doc");
+				System.out.println("-> Add a doc");
 				if (input.length() > 0) {
-					// TODO create an add query
 					addDocument(searchEngine, input);
 				}
 			}
 			else if (TokenType.GET.equals(action)) {
-				System.out.println("- Search");
-				if (tokens.size() > 0) {
-					Query query = new Query(QueryType.GET, tokens.subList(1, tokens.size()));
-					System.out.println("Query = " + query.toString());
-					DocumentList results = search(searchEngine, query);
-					if (results!=null)
-						printResults(results);
+				System.out.println("-> Search");
+				if (tokens.size() > 1) {
+					try {
+						Query query = new Query(QueryType.GET, tokens.subList(1, tokens.size()));
+						System.out.println("Query = " + query.toString());
+						DocumentList results = search(searchEngine, query);
+						if (results!=null)
+							printResults(results);
+					} catch (SyntaxException e) {
+						System.out.println(e.getMessage());
+						System.out.println(MSG_COMMANDS);
+					}
 				}
 			}
 			else if (TokenType.SELECT.equals(action)) {
-				System.out.println("- Select");
-				if (tokens.size() > 0) {
-					Query query = new Query(QueryType.SELECT, tokens.subList(1, tokens.size()));
-					System.out.println("Query = " + query.toString());
-					searchEngine.reloadIndex(query);
+				System.out.println("-> Select");
+				if (tokens.size() > 1) {
+					try {
+						Query query = new Query(QueryType.SELECT, tokens.subList(1, tokens.size()));
+						System.out.println("Query = " + query.toString());
+						searchEngine.reloadIndex(query);
+					} catch (SyntaxException e) {
+						System.out.println(e.getMessage());
+						System.out.println(MSG_COMMANDS);
+					}
 				}
 			}
 		}

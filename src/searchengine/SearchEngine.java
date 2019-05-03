@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -64,7 +64,11 @@ public class SearchEngine {
 				docId = selectQuery.get(i);
 				if (!invertedIndex.hasDocId(docId)) {
 					File file = new File(dbPath + File.separator + docId);
-					loadFile(file, docId);
+					try {
+						loadFile(file, docId);
+					} catch (FileNotFoundException e) {
+						System.err.println("File " + file.getName() + " doesn't exist, skipped to load it to index.");
+					}
 				}
 			}
 		}
@@ -81,8 +85,11 @@ public class SearchEngine {
 			String docID;
 			for (File file : fileList) {
 				docID = file.getName();
-				System.out.println(String.format("path: %s, id: %s", file.getAbsolutePath(), docID));
-				loadFile(file, docID);
+				try {
+					loadFile(file, docID);
+				} catch (FileNotFoundException e) {
+					System.err.println("File " + file.getName() + " doesn't exist, skipped to load it to index.");
+				}
 			}
 		}
 		System.out.println("index = " + invertedIndex.toString());
@@ -94,19 +101,12 @@ public class SearchEngine {
 	 * @param docId the file's identifier
 	 * @throws FileNotFoundException if the file does not exist
 	 */
-	private void loadFile(File file, String docId) {
-		List<Token> tokens = new ArrayList<Token>();
-		Token t = new Token(TokenType.FILENAME, file.getName());
-		tokens.add(t);
-		// Add the file
-		tokens.addAll(readFile(file));
-		// Create an ADD query
-		Query query = new Query(QueryType.ADD, tokens);
-		System.out.println("Add query = " + query.toString());
+	private void loadFile(File file, String docId) throws FileNotFoundException {
+		List<Token> tokens = readFile(file);
 		// Add each term to index
-		for (int i=0; i<query.size(); ++i) {
+		for (int i=1; i<tokens.size(); ++i) {
 			Document docTerm = new Document(docId, 1.0);
-			invertedIndex.insert(query.get(i), docTerm);
+			invertedIndex.insert(tokens.get(i).getValue(), docTerm);
 		}
 	}
 	
@@ -114,24 +114,30 @@ public class SearchEngine {
 	 * Add a document to the data base and the index.
 	 * @param docID Document identifier and file name (including .txt)
 	 * @param text The content of the document
+	 * @throws FileAlreadyExistsException 
 	 */
-	public void addDocument(String docID, String text) throws IllegalArgumentException {
+	public void addDocument(String docID, String text) throws FileAlreadyExistsException {
 		// Check if file already exists in the data base
 		String docName = docID;
 		String docPath = findDataBase() + File.separator + docName;
 		if (new File(docPath).exists())
-			throw new IllegalArgumentException(String.format("File %s already exists.", docID));
+			throw new FileAlreadyExistsException(String.format("File %s already exists.", docID));
 		// Store as a file in db
 		try {
 			writeFile(docPath, text);
 		} catch (IOException e) {
 			System.err.println(String.format("Failed to write the file with id <%d>, "
-					+ "path <%s>, and content <%s>", docID, docPath, text));
+					+ "path <%s>", docID, docPath));
 			e.printStackTrace();
 		}
 		// Load to index
 		File file = new File(docPath);
-		loadFile(file, docID);
+		try {
+			loadFile(file, docID);
+		} catch (FileNotFoundException e) {
+			System.err.println("Failed to read " + file.getAbsolutePath() + ", skipped loading to index.");
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -143,36 +149,22 @@ public class SearchEngine {
 		if (!QueryType.GET.equals(getQuery.getType()))
 			throw new IllegalArgumentException("Wrong query format. Please use a GET query.");
 		
-		TfDocumentList documents;
+		DocumentList documents = new TfDocumentList("");
 		if (getQuery.size() < 1) {
-			documents = new TfDocumentList("");
 			System.out.println("Empty: " + documents.toString());
 		}
 		else if (getQuery.size() == 1) {
 			// one word query
 			String term = getQuery.get(0);
-			documents = invertedIndex.getDocuments(term);
-			TfidfDocumentList sortedDocuments = sortResults(term, documents);
-			System.out.println("One word: " + sortedDocuments.toString());
+			documents = invertedIndex.getDocumentsTfidf(term);
+			documents.sort();
 		} else {
-			throw new IllegalArgumentException("Only one-word queries are supported.");
+			System.out.println("Only one-word queries are supported.");
 		}
 		return documents;
 	}
 	
-	/**
-	 * Convert a {@link TfDocumentList} tp {@link TfidfDocumentList} and sort in descending order
-	 */
-	private TfidfDocumentList sortResults(String term, TfDocumentList results) {
-		Double idf = invertedIndex.calcIdf(term);
-		System.out.println(String.format("n=%d, nTerm=%d, idf=%f", 
-				invertedIndex.numberOfDocuments(), results.size(), idf));
-		TfidfDocumentList sortedResults = new TfidfDocumentList(results, idf);
-		sortedResults.sort();
-		return sortedResults;
-	}
-	
-	////////////// CREATE A DATABASE OBJECT THAT HANDLES COMMUNICATION/READ/WRITE //////////////
+	////////////// CREATE A DATABASE OBJECT THAT HANDLES READ/WRITE //////////////
 	
 	/**
 	 * Find the absolute path of the database
@@ -192,21 +184,17 @@ public class SearchEngine {
 	 * Read a file from the local data base
 	 * @param file the file to read
 	 * @return the contents of the file as a list of {@link Token} 
+	 * @throws FileNotFoundException 
 	 */
-	private List<Token> readFile(File file) {
+	private List<Token> readFile(File file) throws FileNotFoundException {
 		// Read the file on disk
-		Scanner sc = null;
-		try {
-			sc = new Scanner(file);
-		} catch (Exception e) {
-			System.out.println(String.format("File not found: %s", file.getAbsolutePath()));
-			e.printStackTrace();
-		}
+		Scanner sc = new Scanner(file);
 		StringBuilder contents = new StringBuilder();
 		while (sc != null && sc.hasNext()) {
 			String word = sc.next();
 			contents.append(word + " ");
 		}
+		sc.close();
 		// Tokenize the document
 		Lexer lexer = new Lexer();
 		List<Token> tokens = lexer.tokenizeDocument(contents.toString());

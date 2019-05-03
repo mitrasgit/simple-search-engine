@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Converts a sequence of characters to tokens
  * A token is a sub-sequence of characters with a special meaning, 
- * for example a word, email adress, or punctuation.
+ * for example a word, filename, or punctuation.
  * 
  * The "query language" supports 
  * 1. Addition of a file:
@@ -32,23 +32,16 @@ public class Lexer {
 	
 	public Lexer() {
 		regexMap.put(TokenType.FILENAME, "\\w+\\.txt");
-		regexMap.put(TokenType.WORD, "\\w+([\\-\\_]\\w+)*");
 		regexMap.put(TokenType.PERIOD, "\\.");
-		
-		/*for (String regex : regexes) {
-			patterns.add(Pattern.compile(regex));
-		}*/
 	}
 	
 	public List<Token> tokenizeDocument(String sequence) {
-		System.out.println("sequence=" + sequence);
 		tokens = new ArrayList<Token>();
 		sequence = sequence.toLowerCase();
 		String[] sequenceList = sequence.split(" ");
 		for (int i=0; i<sequenceList.length; ++i) {
 			addToken(sequenceList[i]);
 		}
-		System.out.println("tokens=" + tokens.toString());
 		return tokens;
 	}
 
@@ -56,9 +49,9 @@ public class Lexer {
 	 * Create a list of tokens, gives an empty list if the sequence is empty
 	 * @param sequence the sequence to tokenize
 	 * @return a list of tokens
-	 * @throws IllegalArgumentException if the format of the sequence is incorrect
+	 * @throws SyntaxException if the format of the sequence is incorrect
 	 */
-	public List<Token> tokenizeQuery(String sequence) throws IllegalArgumentException {
+	public List<Token> tokenizeQuery(String sequence) throws SyntaxException {
 		tokens = new ArrayList<Token>();
 		sequence = sequence.toLowerCase();
 		String[] sequenceList = sequence.split(" ");
@@ -78,11 +71,10 @@ public class Lexer {
 	 * Legal sub-sequences are "add", "exit" or "get", other inputs generate IllegalArgumentException
 	 * @param subSequence the word to match
 	 * @return the token than matches the subSequence
-	 * @throws IllegalArgumentException
+	 * @throws SyntaxException
 	 */
-	private void addActionToken(String subSequence) throws IllegalArgumentException {
+	private void addActionToken(String subSequence) throws SyntaxException {
 		Token token = null;
-		System.out.println("subseq = " + subSequence);
 		if (subSequence.equals("add")) {
 			token = new Token(TokenType.ADD, subSequence);
 		}
@@ -95,7 +87,7 @@ public class Lexer {
 		else if (subSequence.equals("select")) { 
 			token = new Token(TokenType.SELECT, subSequence);
 		} else {
-			throw new IllegalArgumentException("Please start a command with ADD, GET, SELECT or EXIT.");
+			throw new SyntaxException("Please start a command with ADD, GET, SELECT or EXIT.");
 		}
 		tokens.add(token);
 	}
@@ -106,12 +98,11 @@ public class Lexer {
 		if (subSequence.matches(regexMap.get(TokenType.FILENAME))) {
 			token = new Token(TokenType.FILENAME, subSequence);
 		}
-		else if (subSequence.matches(regexMap.get(TokenType.WORD))) {
-			token = new Token(TokenType.WORD, subSequence);
-		} else if (subSequence.matches(regexMap.get(TokenType.PERIOD))) {
+		else if (subSequence.matches(regexMap.get(TokenType.PERIOD))) {
 			token = new Token(TokenType.PERIOD, subSequence);
-		} else {
-			throw new IllegalArgumentException("[" + subSequence + "] is not supported by any token.");
+		} 
+		else {
+			token = new Token(TokenType.WORD, subSequence);
 		}
 		tokens.add(token);
 	}

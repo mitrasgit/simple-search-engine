@@ -14,27 +14,27 @@ public class Query {
 	private List<String> query;
 	private QueryType queryType;
 	
-	public Query(QueryType queryType, List<Token> tokens) {
+	public Query(QueryType queryType, List<Token> tokens) throws SyntaxException {
 		this.queryType = queryType;	
 		switch (queryType) {
 		case SELECT:
 			this.query = buildSelectQuery(tokens);
 			break;
-		case ADD:
+		/*case ADD:
 			this.query = buildAddQuery(tokens);
-			break;
+			break;*/
 		case GET:
 			this.query = buildGetQuery(tokens);
 			break;
-		case EXIT:
+		/*case EXIT:
 			this.query = new ArrayList<String>();
-			break;
+			break;*/
 		default:
-			throw new IllegalArgumentException("QueryType <" + queryType + "> is not supported.");
+			throw new SyntaxException("QueryType <" + queryType + "> is not supported.");
 		}
 	}
 
-	private List<String> buildSelectQuery(List<Token> tokens) {
+	private List<String> buildSelectQuery(List<Token> tokens) throws SyntaxException {
 		List<String> query = new ArrayList<String>();
 		TokenType type;
 		for (Token t : tokens) {
@@ -42,24 +42,24 @@ public class Query {
 			if (TokenType.FILENAME.equals(type)) {
 				query.add(t.getValue());
 			} else {
-				throw new IllegalArgumentException("Select queries can't contain token " + t.toString());
+				throw new SyntaxException("Select queries can't contain token " + t.toString());
 			}
 		}
 		return query;
 	}
 	
-	private List<String> buildAddQuery(List<Token> tokens) {
+	private List<String> buildAddQuery(List<Token> tokens)  throws SyntaxException {
 		List<String> query = new ArrayList<String>();
 		Token t;
 		if (tokens.size() < 2) {
-			throw new IllegalArgumentException("Can't create ADD query from tokens " + tokens.toString());
+			throw new SyntaxException("Can't create ADD query from tokens " + tokens.toString());
 		} else {
 			// first token is a filename
 			t = tokens.get(0);
 			if (TokenType.FILENAME.equals(t.getType())) {
 				query.add(t.getValue());
 			} else {
-				throw new IllegalArgumentException("ADD query can't start with token " + t.toString());
+				throw new SyntaxException("ADD query can't start with token " + t.toString());
 			}
 			// words
 			for (int i=1; i<tokens.size(); ++i) {
@@ -68,17 +68,18 @@ public class Query {
 				case WORD:
 					query.add(t.getValue());
 					break;
-				case PERIOD:
+				case FILENAME:
+					query.add(t.getValue());
 					break;
 				default:
-					throw new IllegalArgumentException("ADD query can't add text with token " + t.toString());
+					throw new SyntaxException("ADD query can't add text with token " + t.toString());
 				}
 			}
 		}
 		return query;
 	}
 	
-	private List<String> buildGetQuery(List<Token> tokens) {
+	private List<String> buildGetQuery(List<Token> tokens) throws SyntaxException {
 		List<String> query = new ArrayList<String>();
 		TokenType type;
 		for (Token t : tokens) {
@@ -87,10 +88,11 @@ public class Query {
 			case WORD:
 				query.add(t.getValue());
 				break;
-			case PERIOD:
+			case FILENAME:
+				query.add(t.getValue());
 				break;
 			default:
-				throw new IllegalArgumentException("GET query can't contain token " + t.toString());
+				throw new SyntaxException("GET query can't contain token " + t.toString());
 			}
 		}
 		return query;

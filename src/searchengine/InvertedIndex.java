@@ -39,12 +39,21 @@ public class InvertedIndex {
 	/**
 	 * Get the names of all documents that contain a key word
 	 */
-	public TfDocumentList getDocuments(String term) {
+	public TfDocumentList getDocumentsTf(String term) {
 		TfDocumentList documents = index.get(term);
 		if (documents == null) {
 			documents = new TfDocumentList(term);
 		}
 		return documents;
+	}
+	
+	public TfidfDocumentList getDocumentsTfidf(String term) {
+		TfDocumentList documentsTf = index.get(term);
+		if (documentsTf == null) {
+			documentsTf = new TfDocumentList(term);
+		}
+		Double idf = calcIdf(term);
+		return new TfidfDocumentList(documentsTf, idf);
 	}
 	
 	public Integer numberOfDocuments() {
@@ -68,7 +77,8 @@ public class InvertedIndex {
 			nTerm = index.get(term).size();
 		}
 		Double idf = Math.log10((double) numberOfDocuments() / nTerm);
-		System.out.println("invindex, term=" + term + " N=" + numberOfDocuments() + " n_t=" + nTerm + " --> idf=" + idf);
+		System.out.println(String.format("calc idf: term = %s, N = %d, n_t = %d --> idf = %f", 
+				term, numberOfDocuments(), nTerm, idf));
 		return idf;
 	}
 	

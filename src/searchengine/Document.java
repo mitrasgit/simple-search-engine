@@ -67,7 +67,7 @@ public class Document implements Comparable<Document>{
 	
 	@Override
 	public String toString() {
-		return "DocTerm{docId=" + docId + ", score=" + score + "}";
+		return "{docId=" + docId + ", score=" + score + "}";
 	}
 
 }
