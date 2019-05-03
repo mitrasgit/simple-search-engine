@@ -1,5 +1,21 @@
 ﻿__Simple Search Engine__
 
+__How to use__  
+Per default, the search engine will index all files in the db folder.  
+To select a subset of the files, use the terminal and type for example:  
+_select doc1.txt doc2.txt doc3.txt_
+
+Search for a word in the index:  
+_get fox_
+
+Add a new document to the db folder and the index:  
+_add filename.txt some example text_
+
+Terminate the search engine:  
+_exit_
+
+
+__The project consists of...__  
 _DB_  
 Document 1: “the brown fox jumped over the brown dog”  
 Document 2: “the lazy brown dog sat in the corner”  
