@@ -23,10 +23,7 @@ Document 3: “the red fox bit the lazy dog”
 ...
 
 _MAIN_  
-Interface with the user, uses a Lexer to tokenize the input an construct the relevant query  
-main  
-readQuery  
-generateOutput
+Interface with the user, uses a Lexer to tokenize the input an construct the relevant query
 
 _LEXER_  
 Tokenize a line of input according to the grammar:  
@@ -66,15 +63,13 @@ TF: (term frequency) the number of times that term t occurs in document d
 
 IDF: (inverse document frequency) inverse fraction of the documents that contain the term  
 	idf = log( |N| / |N.contains(t)| )  
- 	or to avoid division by zero:  
+ 	and when we need to avoid division by zero:  
 	idf = log ( |N| / 1+|N.contains(t)| )
 
 
-1. Man vill kunna lägga till nya dokument, och då behålla stora/små bokstäver, siffror, och tecken i databasen!
+1. Man vill kunna lägga till nya dokument, och då behålla stora/små bokstäver, siffror, och tecken i databasen.
 Därför används inte tokens för själva texten som ska sparas.  
-MEN när man laddar dokumenten till index så behöver de vara kompatibla med Query-tokens, så i _load_docs_ så
+MEN när man laddar dokumenten till index så behöver de vara kompatibla med Query-tokens, så innan indexering så
 tokeniseras dokumenten!
-
-2. 
 
 
