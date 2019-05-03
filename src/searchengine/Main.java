@@ -3,34 +3,29 @@
  */
 package searchengine;
 
-import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 /**
- * Interface with the user
- * DONE sort results by tf-idf
- * DONE use Document class
- * DONE Use a lexer/tokenizer to create Token/Term objects
- * DONE Add a SELECT option to define the set of documents to consider, expand the lexer, 
- * add QueryType.SELECT, reload the index
- * DONE Handle all of the exceptions
- * TODO Limit the amount of exceptions, use more default behaviours etc
- * TODO Create a parser: lexer controls the tokens, parser controls the token flow by creating a tree, 
- * TODO Review the code structure (Query class (DONE), call new Query (structure), DataBase (create))
- * TODO Run tests with pre-calculated tf-idf scores
+ * Interface with the user.
+ * Reads input from the user and chooses what to do.
  *
  */
 public class Main {
 
-	private static final String MSG_COMMANDS = "\nType EXIT to terminate,\n"
+	private static final String MSG_COMMANDS = "Type EXIT to terminate,\n"
 			+ "ADD <filename.txt> <file content> to add a document,\n"
 			+ "GET <query> to search for a word,\n"
 			+ "SELECT <filename.txt> <filename.txt> ... to select a subset of the files.";
-	private static final String MSG_WELCOME = "Welcome to Simple Search Engine!\n" + MSG_COMMANDS;
+	private static final String MSG_WELCOME = "\nWelcome to Simple Search Engine!\n" + MSG_COMMANDS;
 	
+	/**
+	 * Make the search engine store a new document in the data base and then load it to index
+	 * @param engine the search engine
+	 * @param input the line of input from the user
+	 */
 	private static void addDocument(SearchEngine engine, String input) {
 		String[] inputList = input.split(" ", 3);
 		if (inputList.length < 3 || !inputList[1].endsWith(".txt")) {
@@ -48,20 +43,10 @@ public class Main {
 		}
 	}
 	
-	private static DocumentList search(SearchEngine engine, Query query) {
-		DocumentList results = null;
-		try {
-			results = engine.search(query);
-		} catch (IllegalArgumentException e) {
-			System.out.println(e.getMessage());
-		}
-		return results;
-	}
-	
 	/**
-	 * 
-	 * @param lexer
-	 * @param input
+	 * Makes a lexer read the input to a list of tokens
+	 * @param lexer converts a string to a list of tokens
+	 * @param input from the user
 	 * @return
 	 */
 	private static List<Token> readInput(Lexer lexer, String input) {
@@ -75,10 +60,6 @@ public class Main {
 		return tokens;
 	}
 
-	/**
-	 * @param args
-	 * @throws IOException If the Search Engine fails to create an inverted index
-	 */
 	public static void main(String[] args) {
 		TokenType action = null;
 		SearchEngine searchEngine = new SearchEngine();
@@ -113,7 +94,7 @@ public class Main {
 					try {
 						Query query = new Query(QueryType.GET, tokens.subList(1, tokens.size()));
 						System.out.println("Query = " + query.toString());
-						DocumentList results = search(searchEngine, query);
+						DocumentList results = searchEngine.search(query);
 						if (results!=null)
 							printResults(results);
 					} catch (SyntaxException e) {

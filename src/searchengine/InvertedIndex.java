@@ -37,7 +37,9 @@ public class InvertedIndex {
 	}
 	
 	/**
-	 * Get the names of all documents that contain a key word
+	 * Get all documents that contain the term
+	 * @param term the word to search for
+	 * @return A list of documents with their tf scores
 	 */
 	public TfDocumentList getDocumentsTf(String term) {
 		TfDocumentList documents = index.get(term);
@@ -47,6 +49,11 @@ public class InvertedIndex {
 		return documents;
 	}
 	
+	/**
+	 * Get a DocumentList with the documents that contain a term (with tf scores)
+	 * @param term the word to search for
+	 * @return A list of documents with their tf-idf scores
+	 */
 	public TfidfDocumentList getDocumentsTfidf(String term) {
 		TfDocumentList documentsTf = index.get(term);
 		if (documentsTf == null) {

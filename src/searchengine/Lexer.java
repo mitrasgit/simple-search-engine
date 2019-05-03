@@ -35,6 +35,12 @@ public class Lexer {
 		regexMap.put(TokenType.PERIOD, "\\.");
 	}
 	
+	/**
+	 * Tokenize a document, it can contain WORD/FILENAME/PUNCTUATION tokens
+	 * Gives an empty list if the sequence is empty
+	 * @param sequence the document text
+	 * @return list of tokens
+	 */
 	public List<Token> tokenizeDocument(String sequence) {
 		tokens = new ArrayList<Token>();
 		sequence = sequence.toLowerCase();
@@ -47,7 +53,7 @@ public class Lexer {
 
 	/**
 	 * Create a list of tokens, gives an empty list if the sequence is empty
-	 * @param sequence the sequence to tokenize
+	 * @param sequence the query to tokenize
 	 * @return a list of tokens
 	 * @throws SyntaxException if the format of the sequence is incorrect
 	 */
@@ -92,6 +98,10 @@ public class Lexer {
 		tokens.add(token);
 	}
 	
+	/**
+	 * Create a text-token from the sub sequence (FILENAME, WORD or PUNCTUATION)
+	 * @param subSequence
+	 */
 	private void addToken(String subSequence) {
 		// Use regex to select a token
 		Token token;

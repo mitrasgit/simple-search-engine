@@ -20,11 +20,19 @@ public class SearchEngine {
 	
 	private InvertedIndex invertedIndex = new InvertedIndex();
 	
+	/**
+	 * Create a SearchEngine where the index contains all the files in the data base
+	 */
 	public SearchEngine() {
 		String db = findDataBase();
 		this.loadIndexAllFiles(db);
 	}
 	
+	/**
+	 * Create a SearchEngine where the index contains the files specified in the query,
+	 * Skips files that doesn't exist.
+	 * @param selectQuery query with {@link QueryType} SELECT
+	 */
 	public SearchEngine(Query selectQuery) {
 		String db = findDataBase();
 		this.loadIndex(db, selectQuery);
@@ -50,10 +58,6 @@ public class SearchEngine {
 	 * @param selectQuery a query that selects the files to be loaded
 	 */
 	private void loadIndex(String dbPath, Query selectQuery) {
-		if (!QueryType.SELECT.equals(selectQuery.getType())) {
-			System.err.println(selectQuery.getType() + " IS NOT A SELECT QUERY!");
-			return;
-		}
 		if (selectQuery.size() < 1) {
 			// if query is empty --> load all files in db
 			loadIndexAllFiles(dbPath);
@@ -145,10 +149,7 @@ public class SearchEngine {
 	 * @param getQuery {@link Query} of type GET
 	 * @return The documents sorted by tf-idf
 	 */
-	public DocumentList search(Query getQuery) throws IllegalArgumentException {
-		if (!QueryType.GET.equals(getQuery.getType()))
-			throw new IllegalArgumentException("Wrong query format. Please use a GET query.");
-		
+	public DocumentList search(Query getQuery) {
 		DocumentList documents = new TfDocumentList("");
 		if (getQuery.size() < 1) {
 			System.out.println("Empty: " + documents.toString());
